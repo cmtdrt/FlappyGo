@@ -9,6 +9,7 @@ import (
 	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/inpututil"
 	"github.com/hajimehoshi/ebiten/v2/text"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"golang.org/x/image/font/basicfont"
 )
 
@@ -142,10 +143,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 	}
 
 	// Design de l'oiseau
-	birdColor := color.RGBA{R: 255, G: 215, B: 0, A: 255}
-	birdX := g.bird.X - g.bird.W/2
-	birdY := g.bird.Y - g.bird.H/2
-	ebitenutil.DrawRect(dst, birdX, birdY, g.bird.W, g.bird.H, birdColor)
+	drawBird(dst, g.bird.X, g.bird.Y, g.bird.W, g.bird.H)
 
 	// Score
 	scoreStr := fmt.Sprintf("%d", g.score)
@@ -247,4 +245,36 @@ func drawCenteredText(dst *ebiten.Image, msg string, y float64, baseScale float6
 	op.GeoM.Scale(scale, scale)
 	op.GeoM.Translate((float64(ScreenWidth)-float64(w)*scale)/2, y)
 	dst.DrawImage(tmp, op)
+}
+
+// drawBird dessine un oiseau stylisé (corps circulaire, aile, œil, bec).
+// x,y représentent le centre logique de l'oiseau (mêmes coordonnées que la hitbox).
+func drawBird(dst *ebiten.Image, x, y, w, h float64) {
+
+	r := float32(w * 0.6 / 2)
+
+	bodyColor := color.RGBA{R: 255, G: 215, B: 0, A: 255}
+	wingColor := color.RGBA{R: 255, G: 165, B: 0, A: 220}
+	eyeWhite := color.RGBA{R: 255, G: 255, B: 255, A: 255}
+	eyeBlack := color.RGBA{R: 0, G: 0, B: 0, A: 255}
+	beakColor := color.RGBA{R: 255, G: 140, B: 0, A: 255}
+
+	cx := float32(x)
+	cy := float32(y)
+
+	// Corps
+	vector.FillCircle(dst, cx, cy, r, bodyColor, true)
+
+	// Aile
+	vector.FillCircle(dst, cx-6, cy+2, r*0.6, wingColor, true)
+
+	// Œil
+	eyeR := r * 0.25
+	vector.FillCircle(dst, cx+r*0.3, cy-r*0.1, eyeR, eyeWhite, true)
+	vector.FillCircle(dst, cx+r*0.38, cy-r*0.1, eyeR*0.5, eyeBlack, true)
+
+	// Bec
+	beakR := r * 0.15
+	vector.FillCircle(dst, cx+r*0.7, cy, beakR, beakColor, true)
+	vector.FillCircle(dst, cx+r*0.6, cy+beakR*0.4, beakR, beakColor, true)
 }
